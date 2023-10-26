@@ -52,15 +52,14 @@ export const add_vote = async (req, res) => {
   try {
     const { id } = req.params;
 
-    console.log("id:", id);
+    // console.log("id:", id);
 
     const { data: option, error } = await supabase
       .from("Options")
-      .update({ votes: supabase.increment("votes", 1)})
+      .update({ votes: 100 })
       .eq("id", id)
-      .single();
-    console.log("supabase:", supabase);
-    console.log("option:", option);
+      .select();
+
     console.log("error:", error);
 
     if (error) {
@@ -71,7 +70,7 @@ export const add_vote = async (req, res) => {
     if (!option) {
       return res.status(404).json({ message: "Option not found" });
     }
-
+    await Vote_link(id);
     return res.status(200).json(option);
   } catch (error) {
     console.error(error);
@@ -79,10 +78,35 @@ export const add_vote = async (req, res) => {
   }
 };
 
+export async function Vote_link(id) {
+  try {
+    const { data: option, error } = await supabase
+      .from("Options")
+      .insert({ Link_to_vote: `http://localhost:3000/api/options/${id}/votes` })
+      .eq("id", id)
+      .select();
+
+      if (error) {
+        console.error(error);
+        return { message: "update error" };
+      }
+  
+      if (!option) {
+        return { message: "Option not found" };
+      }
+  
+      console.log(`Successfully added vote for option ${id}. Vote URL: ${option.Link_to_vote}`);
+  
+      return option;
+    } catch (error) {
+      console.error(error);
+      return { message: "Server error" };
+    }
+}
+
 export const deleteOpt = async (req, res) => {
   const { id } = req.body;
   const { error } = await supabase.from("Options").delete().eq("id", id);
-
   if (error) {
     res.status(500).json(error);
   } else {
