@@ -56,7 +56,7 @@ export const add_vote = async (req, res) => {
 
     const { data: option, error } = await supabase
       .from("Options")
-      .update({ votes: 100 })
+      .increment("votes", 1 )
       .eq("id", id)
       .select();
 
